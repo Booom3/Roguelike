@@ -54,11 +54,12 @@ namespace Overloadingtut
         {
             RebuildVisibleObjects(Pos, Width, Height);
             display = new Sign[Width * 2, Height * 2];
-            for (int y = 0; y < Height * 2; y++)
+            for (int y = 0; y < Height; y++)
             {
-                for (int x = 0; x < Width * 2; x++)
+                for (int x = 0; x < Width; x++)
                 {
-                    display[x,y] = GetCharAtPoint(new Position((Pos.x - Width) + x, (Pos.y - Height) + y));
+                    display[x,y] = GetCharAtPoint(new Position(     (Pos.x - (int) Math.Floor(Width / 2.0)) + x,
+                                                                    (Pos.y - (int) Math.Floor(Height / 2.0)) + y));
                 }
             }
         }
@@ -113,9 +114,9 @@ namespace Overloadingtut
         public void DisplayPart(Position Pos, int Width, int Height)
         {
             RebuildDisplayGrid(Pos, Width, Height);
-            for (int y = Height * 2 - 1; y >= 0; y--)
+            for (int y = Height - 1; y >= 0; y--)
             {
-                for (int x = 0; x < Width * 2 - 1; x++)
+                for (int x = 0; x < Width; x++)
                 {
                     Console.ForegroundColor = display[x, y].color;
                     Console.Write(display[x, y].sign);

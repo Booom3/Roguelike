@@ -15,12 +15,33 @@ namespace Overloadingtut
         private static int _gridWidth = 900;
         private static int _gridHeight = 900;
         private static int _numEnemies = 30000;
+        private static int _displayWidth = 19;
+        private static int _displayHeight = 19;
 
-        private static int _nextScreen  = 0;
+        private static int _nextScreen  = 1;
         private const int QUIT          = -1;
         private const int MAINGAME      = 0;
         private const int MAINMENU      = 1;
 
+        static int MainMenuGetInt(string Text)
+        {
+            while (true)
+            {
+                Console.WriteLine(Text);
+                string tempin = Console.ReadLine();
+                int ret;
+                try
+                {
+                    ret = Convert.ToInt32(tempin);
+                }
+                catch (FormatException ex)
+                {
+                    Console.WriteLine("Invalid number.");
+                    continue;
+                }
+                return ret;
+            }
+        }
 
         static void MainMenu()
         {
@@ -28,11 +49,13 @@ namespace Overloadingtut
             bool Running = true;
             string A = "A";
             string B = "B";
+            string C = "C";
             string Done = "DONE";
             while (Running)
             {
                 Console.Write(  "(" + A + ") Change number of game objects\n" +
                                 "(" + B + ") Change grid size\n" + 
+                                "(" + C + ") Change viewport size\n" +
                                 "(" + Done + ") Finish\n");
                 string entry = Console.ReadLine();
                 entry = entry.ToUpper();
@@ -55,36 +78,15 @@ namespace Overloadingtut
                 }
                 else if (entry == B)
                 {
-                    while (true)
-                    {
-                        Console.WriteLine("Enter new width:");
-                        string newwidth = Console.ReadLine();
-                        int width;
-                        try
-                        {
-                            width = Convert.ToInt32(newwidth);
-                        }
-                        catch (FormatException ex)
-                        {
-                            Console.WriteLine("Not a number.");
-                            continue;
-                        }
-                        Console.WriteLine("Enter new height:");
-                        string newheight = Console.ReadLine();
-                        int height;
-                        try
-                        {
-                            height = Convert.ToInt32(newheight);
-                        }
-                        catch (FormatException ex)
-                        {
-                            Console.WriteLine("Not a number.");
-                            continue;
-                        }
-                        _gridWidth = width;
-                        _gridHeight = height;
-                        break;
-                    }
+                    _gridWidth = MainMenuGetInt("Enter new width:");
+                    _gridHeight = MainMenuGetInt("Enter new height:");
+                }
+                else if (entry == C)
+                {
+                    while ((_displayWidth = MainMenuGetInt("Enter new viewport width (Odd number):")) % 2 == 0)
+                        Console.WriteLine("Not odd.");
+                    while ((_displayHeight = MainMenuGetInt("Enter new viewport height (Odd number):")) % 2 == 0)
+                        Console.WriteLine("Not odd.");
                 }
                 else if (entry == Done)
                 {
@@ -134,14 +136,23 @@ namespace Overloadingtut
             int framerate = 0;
             int lastFramerate = 0;
             DateTime framerateCounter = DateTime.Now;
+
+            
             while (Running)
             {
+
+                //Draw debug data
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.SetCursorPosition(0, 21);
+                Console.SetCursorPosition(0, _displayHeight+1);
                 Console.Write(DateTime.Now + "\n");
                 Console.Write("Next update " + nextupdate + ":" + nextupdate.Millisecond + "\n");
                 Console.Write("Waiting " + (nextupdate - DateTime.Now) + "ms.\n");
+
+                //Set the cursor back 3 lines, if it waits to draw the next frame
+                //this will make it overwrite the debug lines.
                 Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop - 3);
+
+
                 if (DateTime.Now < nextupdate)
                 {
                     Thread.Sleep(0);
@@ -153,6 +164,7 @@ namespace Overloadingtut
 
 
                 string inputraw = "";
+                //Only read input if there is input.
                 if (Console.KeyAvailable)
                 {
                     ConsoleKeyInfo key = Console.ReadKey(true);
@@ -184,17 +196,18 @@ namespace Overloadingtut
                         _nextScreen = MAINMENU;
                         Running = false;
                     }
+                    //Clear all buffered keys.
                     while (Console.KeyAvailable)
                         Console.ReadKey(true);
                 }
 
                 Console.SetCursorPosition(0, 0);
-                grid.DisplayPart(g.position, 30, 10);
+                grid.DisplayPart(g.position, _displayWidth, _displayHeight);
 
 
                 framerate += 1;
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-
+                Console.SetCursorPosition(0, _displayHeight);
 
 
                 if (DateTime.Now > framerateCounter)
@@ -214,6 +227,7 @@ namespace Overloadingtut
                 else
                     nextupdate = DateTime.Now;
             }
+            //Clear out references so GC can do its thing in Main()
             grid.NullForGC();
             grid = null;
         }
