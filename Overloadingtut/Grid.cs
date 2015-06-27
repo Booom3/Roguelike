@@ -16,6 +16,15 @@ namespace Overloadingtut
         private char outofboundschar = 'X';
         private List<GameObject> visibleObjects = new List<GameObject>();
 
+        //Clear for GC purposes
+        public void NullForGC()
+        {
+            ground = null;
+            gameObjects = null;
+            visibleObjects = null;
+            display = null;
+        }
+
         public int NumberOfGameObjects()
         {
             return gameObjects.Count;
@@ -132,6 +141,7 @@ namespace Overloadingtut
             width = Width;
             MakeGrid();
         }
+
         public void AddGameObject(GameObject AddMe)
         {
             gameObjects.Add(AddMe);

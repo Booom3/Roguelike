@@ -36,12 +36,6 @@ namespace Overloadingtut
             attachedGrid = AttachToGrid;
             attachedGrid.AddGameObject(this);
         }
-        public GameObject(int X, int Y, char Sign, Grid AttachToGrid) : this(AttachToGrid)
-        {
-            position.x = X;
-            position.y = Y;
-            sign.sign = Sign;
-        }
 
         public virtual void Move(int X, int Y)
         {
