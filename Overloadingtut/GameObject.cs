@@ -11,6 +11,7 @@ namespace Overloadingtut
         public Position position;
         public Sign sign;
         public Grid attachedGrid;
+        public bool active = false;
 
         public static T Instantiate<T>(Position position, Grid AttachToGrid) where T : GameObject
         {

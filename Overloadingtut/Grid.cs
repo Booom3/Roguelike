@@ -14,6 +14,12 @@ namespace Overloadingtut
         private List<GameObject> gameObjects;
         private Sign[,] display;
         private char outofboundschar = 'X';
+        private Position lastObjectCheckPos = new Position(0,0);
+        private int maxActiveDistance = 200;
+        private int recheckActiveObjectsDistance = 30;
+
+        //Active > Visible
+        private List<GameObject> activeObjects = new List<GameObject>();
         private List<GameObject> visibleObjects = new List<GameObject>();
 
         //Clear for GC purposes
@@ -64,10 +70,32 @@ namespace Overloadingtut
             }
         }
 
+        private void RebuildActiveObjects(Position Pos)
+        {
+            foreach (GameObject go in activeObjects)
+                go.active = false;
+            if (activeObjects.Count == 0 || Position.Distance(Pos, lastObjectCheckPos) > recheckActiveObjectsDistance)
+            {
+                lastObjectCheckPos = Pos;
+                activeObjects.Clear();
+                foreach (GameObject go in gameObjects)
+                {
+                    if (Position.Distance(Pos, go.position) < maxActiveDistance)
+                        activeObjects.Add(go);
+                }
+            }
+        }
+
+        private void CheckVisibleAndAdd(GameObject Visible)
+        {
+
+        }
+
         private void RebuildVisibleObjects(Position Pos, int Width, int Height)
         {
+            RebuildActiveObjects(Pos);
             visibleObjects.Clear();
-            foreach (GameObject go in gameObjects)
+            foreach (GameObject go in activeObjects)
             {
                 if (go.position.x < Pos.x + Width && go.position.x > Pos.x - Width - 1 &&
                     go.position.y < Pos.y + Height && go.position.y > Pos.y - Height - 1)

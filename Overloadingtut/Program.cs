@@ -12,13 +12,13 @@ namespace Overloadingtut
 
         public static Grunt g;
 
-        private static int _gridWidth = 900;
-        private static int _gridHeight = 900;
-        private static int _numEnemies = 30000;
+        private static int _gridWidth = 9000;
+        private static int _gridHeight = 9000;
+        private static int _numEnemies = 3000000;
         private static int _displayWidth = 19;
         private static int _displayHeight = 19;
 
-        private static int _nextScreen  = 1;
+        private static int _nextScreen  = 0;
         private const int QUIT          = -1;
         private const int MAINGAME      = 0;
         private const int MAINMENU      = 1;
@@ -34,7 +34,7 @@ namespace Overloadingtut
                 {
                     ret = Convert.ToInt32(tempin);
                 }
-                catch (FormatException ex)
+                catch (FormatException)
                 {
                     Console.WriteLine("Invalid number.");
                     continue;
@@ -68,7 +68,7 @@ namespace Overloadingtut
                     {
                         num = Convert.ToInt32(numobjects);
                     }
-                    catch (FormatException ex)
+                    catch (FormatException)
                     {
                         Console.WriteLine("Not a number.");
                         continue;
@@ -121,7 +121,7 @@ namespace Overloadingtut
                     gtemp.sign.color = enemycolors[rand.Next(enemycolors.Length)];
                 }
             }
-            catch (OutOfMemoryException ex)
+            catch (OutOfMemoryException)
             {
                 Console.Clear();
                 Console.WriteLine("I ran out of memory. I am terribly sorry.");
