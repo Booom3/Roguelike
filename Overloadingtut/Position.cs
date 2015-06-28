@@ -16,9 +16,17 @@ namespace Overloadingtut
             y = Y;
         }
 
+
+
+
         public static int Distance(Position Pos1, Position Pos2)
         {
             return Math.Abs(Pos1.x - Pos2.x) + Math.Abs(Pos1.y - Pos2.y);
+        }
+
+        public static Position operator+(Position lhs, Position rhs)
+        {
+            return new Position(lhs.x + rhs.x, lhs.y + rhs.y);
         }
 
         public static Position operator-(Position lhs, Position rhs)

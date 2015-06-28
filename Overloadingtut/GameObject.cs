@@ -12,19 +12,45 @@ namespace Overloadingtut
         public Sign sign;
         public Grid attachedGrid;
         public bool active = false;
+        public bool enterable = false;
+        public bool player = false;
 
         public static T Instantiate<T>(Position position, Grid AttachToGrid) where T : GameObject
         {
             T temp = (T)Activator.CreateInstance(typeof(T));
             temp.position = new Position(position.x, position.y);
-            temp.MoveToGrid(AttachToGrid);
+            temp.CreateOnGrid(AttachToGrid);
             return temp;
         }
 
-        public void MoveToGrid(Grid newGrid)
+        public void CreateOnGrid(Grid newGrid)
         {
             attachedGrid = newGrid;
-            attachedGrid.AddGameObject(this);
+            attachedGrid.AddNewGameObject(this);
+        }
+
+        public void ChangeGrid(Grid newGrid)
+        {
+            if (attachedGrid != null)
+            {
+                attachedGrid.ClearActiveObjects();
+                attachedGrid.RemoveGameObject(this);
+            }
+            attachedGrid = newGrid;
+            attachedGrid.MoveExistingGameObjectHere(this);
+        }
+
+        public bool MoveToGridWorld(Grid newGrid)
+        {
+            if (!newGrid.PosIsAvailable((position + attachedGrid.worldPosition) - newGrid.worldPosition, true))
+                return false;
+
+            position = (position - newGrid.worldPosition) + attachedGrid.worldPosition;
+            if (attachedGrid != null)
+                attachedGrid.RemoveGameObject(this);
+            attachedGrid = newGrid;
+            attachedGrid.MoveExistingGameObjectHere(this);
+            return true;
         }
         
         public GameObject()
@@ -35,12 +61,12 @@ namespace Overloadingtut
         public GameObject(Grid AttachToGrid) 
         {
             attachedGrid = AttachToGrid;
-            attachedGrid.AddGameObject(this);
+            attachedGrid.AddNewGameObject(this);
         }
 
         public virtual void Move(int X, int Y)
         {
-            if (attachedGrid.PosIsAvailable(new Position(position.x + X, position.y + Y)))
+            if (attachedGrid.PosIsAvailable(new Position(position.x + X, position.y + Y), false))
             {
                 position = new Position(position.x + X, position.y + Y);
             }

@@ -8,6 +8,7 @@ namespace Overloadingtut
 {
     class Grid
     {
+        public Position worldPosition = new Position(0, 0);
         private int height;
         private int width;
         private Tile[,] ground;
@@ -36,15 +37,31 @@ namespace Overloadingtut
             return gameObjects.Count;
         }
 
-        public bool PosIsAvailable(Position Pos)
+        public IUsable GetUsableOnPos(Position Pos)
+        {
+            foreach(GameObject go in activeObjects)
+            {
+                if (go.position == Pos)
+                {
+                    IUsable ius = go as IUsable;
+                    if (ius != null)
+                    {
+                        return ius;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public bool PosIsAvailable(Position Pos, bool AllObjects)
         {
             if (IsPointOnGrid(Pos))
             {
                 if (ground[Pos.x, Pos.y].enterable)
                 {
-                    foreach(GameObject go in activeObjects)
+                    foreach(GameObject go in (AllObjects ? gameObjects : activeObjects))
                     {
-                        if (go.position == Pos)
+                        if (go.position == Pos && go.enterable == false)
                             return false;
                     }
                     return true;
@@ -59,7 +76,8 @@ namespace Overloadingtut
         public void RebuildDisplayGrid(Position Pos, int Width, int Height)
         {
             RebuildObjects(Pos, Width, Height);
-            display = new Sign[Width * 2, Height * 2];
+            display = new Sign[Width, Height];
+
             for (int y = 0; y < Height; y++)
             {
                 for (int x = 0; x < Width; x++)
@@ -70,12 +88,17 @@ namespace Overloadingtut
             }
         }
 
+        public void ClearActiveObjects()
+        {
+            activeObjects.Clear();
+        }
+
         private void RebuildObjects(Position Pos, int Width, int Height)
         {
             Width = (int)Math.Floor(Width / 2.0);
             Height = (int)Math.Floor(Height / 2.0);
             visibleObjects.Clear();
-            if (activeObjects.Count == 0 || Position.Distance(Pos, lastObjectCheckPos) > recheckActiveObjectsDistance)
+            if (activeObjects.Count <= 1 || Position.Distance(Pos, lastObjectCheckPos) > recheckActiveObjectsDistance)
             {
                 foreach (GameObject go in activeObjects)
                     go.active = false;
@@ -135,8 +158,20 @@ namespace Overloadingtut
                     select o;
                 if (objectlist.Any())
                 {
-                    ret.sign = objectlist.First().sign.sign;
-                    ret.color = objectlist.First().sign.color;
+                    IEnumerable<GameObject> sortvisible =
+                        from o in objectlist
+                        where o.enterable == false
+                        select o;
+                    if (sortvisible.Any())
+                    {
+                        ret.sign = sortvisible.First().sign.sign;
+                        ret.color = sortvisible.First().sign.color;
+                    }
+                    else
+                    {
+                        ret.sign = objectlist.First().sign.sign;
+                        ret.color = objectlist.First().sign.color;
+                    }
                 }
                 else
                 {
@@ -192,9 +227,22 @@ namespace Overloadingtut
             MakeGrid();
         }
 
-        public void AddGameObject(GameObject AddMe)
+        public void MoveExistingGameObjectHere(GameObject MoveMe)
+        {
+            gameObjects.Add(MoveMe);
+            activeObjects.Add(MoveMe);
+        }
+
+        public void AddNewGameObject(GameObject AddMe)
         {
             gameObjects.Add(AddMe);
+        }
+
+        public void RemoveGameObject(GameObject RemoveMe)
+        {
+            gameObjects.Remove(RemoveMe);
+            activeObjects.Remove(RemoveMe);
+            visibleObjects.Remove(RemoveMe);
         }
 
     }

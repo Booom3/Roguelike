@@ -12,9 +12,9 @@ namespace Overloadingtut
 
         public static Grunt g;
 
-        private static int _gridWidth = 9000;
-        private static int _gridHeight = 9000;
-        private static int _numEnemies = 10000000;
+        private static int _gridWidth = 900;
+        private static int _gridHeight = 900;
+        private static int _numEnemies = 1000;
         private static int _displayWidth = 19;
         private static int _displayHeight = 19;
 
@@ -107,9 +107,24 @@ namespace Overloadingtut
             string up = "W";
             string down = "S";
             Grid grid = null;
+            Grid grid2 = null;
             try
             {
                 grid = new Grid(_gridWidth, _gridHeight);
+
+                grid2 = new Grid(20, 20);
+                grid2.worldPosition = new Position(-5, -5);
+                Portal p1 = GameObject.Instantiate<Portal>(new Position(25, 25), grid);
+                Portal p2 = GameObject.Instantiate<Portal>(new Position(1, 1), grid2);
+                p1.linkedObject = p2;
+                p2.linkedObject = p1;
+                Grid grid3 = new Grid(50, 50);
+                grid3.worldPosition = new Position(-2000, -2000);
+                Portal p3 = GameObject.Instantiate<Portal>(new Position(15, 15), grid);
+                Portal p4 = GameObject.Instantiate<Portal>(new Position(1, 1), grid3);
+                p3.linkedObject = p4;
+                p4.linkedObject = p3;
+
                 g = GameObject.Instantiate<Grunt>(new Position(4, 7), grid);
                 g.sign.sign = 'M';
                 g.sign.color = ConsoleColor.Red;
@@ -138,6 +153,8 @@ namespace Overloadingtut
             int lastFramerate = 0;
             DateTime framerateCounter = DateTime.Now;
 
+            bool drawgriddebug = false;
+
             
             while (Running)
             {
@@ -148,6 +165,8 @@ namespace Overloadingtut
                 Console.Write(DateTime.Now + "\n");
                 Console.Write("Next update " + nextupdate + ":" + nextupdate.Millisecond + "\n");
                 Console.Write("Waiting " + (nextupdate - DateTime.Now) + "ms.\n");
+
+                
 
                 //Set the cursor back 3 lines, if it waits to draw the next frame
                 //this will make it overwrite the debug lines.
@@ -162,6 +181,17 @@ namespace Overloadingtut
                     continue;
                 }
 
+                //More debug
+                Console.SetCursorPosition(_displayWidth, 0);
+                Console.Write("X: " + g.position.x.ToString("D3"));
+                Console.SetCursorPosition(_displayWidth, 1);
+                Console.Write("Y: " + g.position.y.ToString("D3"));
+                int worldx = g.position.x + g.attachedGrid.worldPosition.x;
+                int worldy = g.position.y + g.attachedGrid.worldPosition.y;
+                Console.SetCursorPosition(_displayWidth, 2);
+                Console.Write("World X: " + (worldx < 0 ? "-" : " ") + Math.Abs(worldx).ToString("D4"));
+                Console.SetCursorPosition(_displayWidth, 3);
+                Console.Write("World Y: " + (worldy < 0 ? "-" : " ") + Math.Abs(worldy).ToString("D4"));
 
 
                 string inputraw = "";
@@ -197,13 +227,30 @@ namespace Overloadingtut
                         _nextScreen = MAINMENU;
                         Running = false;
                     }
+                    else if (inputraw == "B")
+                    {
+                        g.MoveToGridWorld(g.attachedGrid == grid ? grid2 : grid);
+                    }
+                    else if (inputraw == "L")
+                    {
+                        drawgriddebug = !drawgriddebug;
+                    }
+                    else if (inputraw == "U")
+                    {
+                        IUsable ius = g.attachedGrid.GetUsableOnPos(g.position);
+                        if(ius != null)
+                        {
+                            ius.Use(g);
+                        }
+                    }
                     //Clear all buffered keys.
                     while (Console.KeyAvailable)
                         Console.ReadKey(true);
                 }
 
                 Console.SetCursorPosition(0, 0);
-                grid.DisplayPart(g.position, _displayWidth, _displayHeight);
+                if (!drawgriddebug) g.attachedGrid.DisplayPart(g.position, _displayWidth, _displayHeight);
+                else grid.DisplayPart(g.position, _displayHeight, _displayWidth);
 
 
                 framerate += 1;
