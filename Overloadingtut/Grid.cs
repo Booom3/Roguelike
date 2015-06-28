@@ -86,11 +86,6 @@ namespace Overloadingtut
             }
         }
 
-        private void CheckVisibleAndAdd(GameObject Visible)
-        {
-
-        }
-
         private void RebuildVisibleObjects(Position Pos, int Width, int Height)
         {
             RebuildActiveObjects(Pos);
