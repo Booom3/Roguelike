@@ -12,9 +12,9 @@ namespace Overloadingtut
 
         public static Grunt g;
 
-        private static int _gridWidth = 9000;
-        private static int _gridHeight = 9000;
-        private static int _numEnemies = 3000000;
+        private static int _gridWidth = 900;
+        private static int _gridHeight = 900;
+        private static int _numEnemies = 30000;
         private static int _displayWidth = 19;
         private static int _displayHeight = 19;
 
@@ -113,6 +113,7 @@ namespace Overloadingtut
                 g = GameObject.Instantiate<Grunt>(new Position(4, 7), grid);
                 g.sign.sign = 'M';
                 g.sign.color = ConsoleColor.Red;
+                g.bounceenabled = false;
                 Random rand = new Random();
                 ConsoleColor[] enemycolors = { ConsoleColor.DarkRed, ConsoleColor.DarkYellow, ConsoleColor.Yellow };
                 for (int i = 0; i < _numEnemies; i++)
@@ -200,6 +201,8 @@ namespace Overloadingtut
                     while (Console.KeyAvailable)
                         Console.ReadKey(true);
                 }
+
+                grid.UpdateActiveObjects();
 
                 Console.SetCursorPosition(0, 0);
                 grid.DisplayPart(g.position, _displayWidth, _displayHeight);

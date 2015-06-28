@@ -15,7 +15,7 @@ namespace Overloadingtut
         private Sign[,] display;
         private char outofboundschar = 'X';
         private Position lastObjectCheckPos = new Position(0,0);
-        private int maxActiveDistance = 200;
+        private int maxActiveDistance = 100;
         private int recheckActiveObjectsDistance = 30;
 
         //Active > Visible
@@ -42,7 +42,7 @@ namespace Overloadingtut
             {
                 if (ground[Pos.x, Pos.y].enterable)
                 {
-                    foreach(GameObject go in gameObjects)
+                    foreach(GameObject go in activeObjects)
                     {
                         if (go.position == Pos)
                             return false;
@@ -54,6 +54,12 @@ namespace Overloadingtut
             }
             else
                 return false;
+        }
+
+        public void UpdateActiveObjects()
+        {
+            foreach (GameObject go in activeObjects)
+                go.Update();
         }
 
         public void RebuildDisplayGrid(Position Pos, int Width, int Height)
