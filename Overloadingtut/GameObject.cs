@@ -29,25 +29,26 @@ namespace Overloadingtut
             attachedGrid.AddNewGameObject(this);
         }
 
-        public void ChangeGrid(Grid newGrid)
+        //Set world to true if you want to attempt moving to a position on an overlapping grid.
+        //Only returns false if World is true and position is not available.
+        public bool MoveToGrid(Grid newGrid, bool World)
         {
+            if (World)
+            {
+                if (!newGrid.PosIsAvailable((position + attachedGrid.worldPosition) - newGrid.worldPosition, true))
+                    return false;
+
+                position = (position - newGrid.worldPosition) + attachedGrid.worldPosition;
+            }
             if (attachedGrid != null)
             {
-                attachedGrid.ClearActiveObjects();
+                if (player)
+                {
+                    attachedGrid.ClearActiveObjects();
+                    newGrid.ClearActiveObjects();
+                }
                 attachedGrid.RemoveGameObject(this);
             }
-            attachedGrid = newGrid;
-            attachedGrid.MoveExistingGameObjectHere(this);
-        }
-
-        public bool MoveToGridWorld(Grid newGrid)
-        {
-            if (!newGrid.PosIsAvailable((position + attachedGrid.worldPosition) - newGrid.worldPosition, true))
-                return false;
-
-            position = (position - newGrid.worldPosition) + attachedGrid.worldPosition;
-            if (attachedGrid != null)
-                attachedGrid.RemoveGameObject(this);
             attachedGrid = newGrid;
             attachedGrid.MoveExistingGameObjectHere(this);
             return true;

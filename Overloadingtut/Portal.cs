@@ -17,7 +17,7 @@ namespace Overloadingtut
             if (linkedObject.attachedGrid.PosIsAvailable(linkedObject.position, true))
             {
                 User.position = linkedObject.position;
-                User.ChangeGrid(linkedObject.attachedGrid);
+                User.MoveToGrid(linkedObject.attachedGrid, false);
             }
         }
 

@@ -12,9 +12,9 @@ namespace Overloadingtut
 
         public static Grunt g;
 
-        private static int _gridWidth = 900;
-        private static int _gridHeight = 900;
-        private static int _numEnemies = 1000;
+        private static int _gridWidth = 9000;
+        private static int _gridHeight = 9000;
+        private static int _numEnemies = 15000000;
         private static int _displayWidth = 19;
         private static int _displayHeight = 19;
 
@@ -108,8 +108,10 @@ namespace Overloadingtut
             string down = "S";
             Grid grid = null;
             Grid grid2 = null;
+            //There is no size limit so we need to catch out of memory exceptions.
             try
             {
+                //Create game world.
                 grid = new Grid(_gridWidth, _gridHeight);
 
                 grid2 = new Grid(20, 20);
@@ -124,15 +126,21 @@ namespace Overloadingtut
                 Portal p4 = GameObject.Instantiate<Portal>(new Position(1, 1), grid3);
                 p3.linkedObject = p4;
                 p4.linkedObject = p3;
+                GameObject.Instantiate<Grunt>(new Position(5, 5), grid2);
+                GameObject.Instantiate<Grunt>(new Position(5, 5), grid3);
 
+                //Create player object.
                 g = GameObject.Instantiate<Grunt>(new Position(4, 7), grid);
                 g.sign.sign = 'M';
                 g.sign.color = ConsoleColor.Red;
+                g.player = true;
+
+                //Randomly shit out enemies everywhere.
                 Random rand = new Random();
                 ConsoleColor[] enemycolors = { ConsoleColor.DarkRed, ConsoleColor.DarkYellow, ConsoleColor.Yellow };
                 for (int i = 0; i < _numEnemies; i++)
                 {
-                    GameObject gtemp = GameObject.Instantiate<Grunt>(new Position(rand.Next(_gridWidth), rand.Next(_gridHeight)), grid);
+                    GameObject gtemp = GameObject.Instantiate<Grunt>(new Position(1 + rand.Next(_gridWidth - 2), 1 + rand.Next(_gridHeight - 2)), grid);
                     gtemp.sign.color = enemycolors[rand.Next(enemycolors.Length)];
                 }
             }
@@ -194,7 +202,7 @@ namespace Overloadingtut
                 Console.Write("World Y: " + (worldy < 0 ? "-" : " ") + Math.Abs(worldy).ToString("D4"));
 
 
-                string inputraw = "";
+                string inputraw;
                 //Only read input if there is input.
                 if (Console.KeyAvailable)
                 {
@@ -227,14 +235,20 @@ namespace Overloadingtut
                         _nextScreen = MAINMENU;
                         Running = false;
                     }
+
+                    //Debug.
+                    //Switch between grid 1 and 2 if possible.
                     else if (inputraw == "B")
                     {
-                        g.MoveToGridWorld(g.attachedGrid == grid ? grid2 : grid);
+                        g.MoveToGrid(g.attachedGrid == grid ? grid2 : grid, true);
                     }
+                    //Draw the world position of grid 1.
                     else if (inputraw == "L")
                     {
                         drawgriddebug = !drawgriddebug;
                     }
+
+                    //Use
                     else if (inputraw == "U")
                     {
                         IUsable ius = g.attachedGrid.GetUsableOnPos(g.position);
@@ -250,7 +264,7 @@ namespace Overloadingtut
 
                 Console.SetCursorPosition(0, 0);
                 if (!drawgriddebug) g.attachedGrid.DisplayPart(g.position, _displayWidth, _displayHeight);
-                else grid.DisplayPart(g.position, _displayHeight, _displayWidth);
+                else grid.DisplayPart(g.position + g.attachedGrid.worldPosition, _displayHeight, _displayWidth);
 
 
                 framerate += 1;

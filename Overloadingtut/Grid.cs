@@ -18,6 +18,7 @@ namespace Overloadingtut
         private Position lastObjectCheckPos = new Position(0,0);
         private int maxActiveDistance = 100;
         private int recheckActiveObjectsDistance = 30;
+        private int fullRecheckActiveObjectsdistance = 60;
 
         //Active > Visible
         private List<GameObject> activeObjects = new List<GameObject>();
@@ -93,17 +94,24 @@ namespace Overloadingtut
             activeObjects.Clear();
         }
 
+        int CurrentBatchRebuild = 0;
+        int BatchSize = 400000;
+        List<GameObject> BatchObjects = new List<GameObject>();
+        bool BatchComplete = false;
         private void RebuildObjects(Position Pos, int Width, int Height)
         {
-            Width = (int)Math.Floor(Width / 2.0);
-            Height = (int)Math.Floor(Height / 2.0);
+            Width = (int)Math.Ceiling(Width / 2.0);
+            Height = (int)Math.Ceiling(Height / 2.0);
             visibleObjects.Clear();
-            if (activeObjects.Count <= 1 || Position.Distance(Pos, lastObjectCheckPos) > recheckActiveObjectsDistance)
+            if (activeObjects.Count <= 1 || Position.Distance(Pos, lastObjectCheckPos) > fullRecheckActiveObjectsdistance)
             {
                 foreach (GameObject go in activeObjects)
                     go.active = false;
                 activeObjects.Clear();
                 lastObjectCheckPos = Pos;
+                BatchObjects.Clear();
+                CurrentBatchRebuild = 0;
+                BatchComplete = false;
                 foreach (GameObject go in gameObjects)
                 {
                     if (IsInActiveRange(go.position, Pos))
@@ -116,6 +124,41 @@ namespace Overloadingtut
                         }
                     }
                 }
+            }
+            else if (Position.Distance(Pos, lastObjectCheckPos) > recheckActiveObjectsDistance)
+            {
+                for (int i = 0; i <= BatchSize; i++)
+                {
+                    if (i+CurrentBatchRebuild >= gameObjects.Count)
+                    {
+                        BatchComplete = true;
+                        break;
+                    }
+                    if (gameObjects[i+CurrentBatchRebuild] != null)
+                    {
+                        if (IsInActiveRange(gameObjects[i+CurrentBatchRebuild].position, Pos))
+                        {
+                            BatchObjects.Add(gameObjects[i+CurrentBatchRebuild]);
+                        }
+                    }
+                    if (i >= BatchSize)
+                    {
+                        CurrentBatchRebuild = i + CurrentBatchRebuild;
+                    }
+                }
+                if (BatchComplete)
+                {
+                    activeObjects.Clear();
+                    foreach (GameObject go in BatchObjects)
+                        activeObjects.Add(go);
+                    lastObjectCheckPos = Pos;
+                    BatchObjects.Clear();
+                    CurrentBatchRebuild = 0;
+                    BatchComplete = false;
+                }
+                foreach (GameObject go in activeObjects)
+                    if (IsInVisibleRange(go.position, Pos, Width, Height))
+                        visibleObjects.Add(go);
             }
             else
             {
@@ -140,8 +183,8 @@ namespace Overloadingtut
         private bool IsInVisibleRange(Position ObjectPos, Position Pos, int Width, int Height)
         {
 
-            if (ObjectPos.x < Pos.x + Width  && ObjectPos.x > Pos.x - Width - 1 &&
-                ObjectPos.y < Pos.y + Height && ObjectPos.y > Pos.y - Height - 1)
+            if (ObjectPos.x < Pos.x + Width && ObjectPos.x > Pos.x - Width &&
+                ObjectPos.y < Pos.y + Height && ObjectPos.y > Pos.y - Height)
                 return true;
             else
                 return false;
