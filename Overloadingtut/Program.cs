@@ -14,7 +14,7 @@ namespace Overloadingtut
 
         private static int _gridWidth = 9000;
         private static int _gridHeight = 9000;
-        private static int _numEnemies = 3000000;
+        private static int _numEnemies = 10000000;
         private static int _displayWidth = 19;
         private static int _displayHeight = 19;
 
@@ -123,10 +123,11 @@ namespace Overloadingtut
             }
             catch (OutOfMemoryException)
             {
+                if (grid != null) grid.NullForGC();
+                grid = null;
                 Console.Clear();
                 Console.WriteLine("I ran out of memory. I am terribly sorry.");
                 Console.ReadKey();
-                if (grid != null) grid.NullForGC();
                 _nextScreen = MAINMENU;
                 return;
             }

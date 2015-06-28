@@ -15,7 +15,7 @@ namespace Overloadingtut
         private Sign[,] display;
         private char outofboundschar = 'X';
         private Position lastObjectCheckPos = new Position(0,0);
-        private int maxActiveDistance = 200;
+        private int maxActiveDistance = 100;
         private int recheckActiveObjectsDistance = 30;
 
         //Active > Visible
@@ -42,7 +42,7 @@ namespace Overloadingtut
             {
                 if (ground[Pos.x, Pos.y].enterable)
                 {
-                    foreach(GameObject go in gameObjects)
+                    foreach(GameObject go in activeObjects)
                     {
                         if (go.position == Pos)
                             return false;
@@ -58,47 +58,73 @@ namespace Overloadingtut
 
         public void RebuildDisplayGrid(Position Pos, int Width, int Height)
         {
-            RebuildVisibleObjects(Pos, Width, Height);
+            RebuildObjects(Pos, Width, Height);
             display = new Sign[Width * 2, Height * 2];
             for (int y = 0; y < Height; y++)
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    display[x,y] = GetCharAtPoint(new Position(     (Pos.x - (int) Math.Floor(Width / 2.0)) + x,
+                    display[x,y] = GetCharAtVisiblePoint(new Position(     (Pos.x - (int) Math.Floor(Width / 2.0)) + x,
                                                                     (Pos.y - (int) Math.Floor(Height / 2.0)) + y));
                 }
             }
         }
 
-        private void RebuildActiveObjects(Position Pos)
+        private void RebuildObjects(Position Pos, int Width, int Height)
         {
-            foreach (GameObject go in activeObjects)
-                go.active = false;
+            Width = (int)Math.Floor(Width / 2.0);
+            Height = (int)Math.Floor(Height / 2.0);
+            visibleObjects.Clear();
             if (activeObjects.Count == 0 || Position.Distance(Pos, lastObjectCheckPos) > recheckActiveObjectsDistance)
             {
-                lastObjectCheckPos = Pos;
+                foreach (GameObject go in activeObjects)
+                    go.active = false;
                 activeObjects.Clear();
+                lastObjectCheckPos = Pos;
                 foreach (GameObject go in gameObjects)
                 {
-                    if (Position.Distance(Pos, go.position) < maxActiveDistance)
+                    if (IsInActiveRange(go.position, Pos))
+                    {
                         activeObjects.Add(go);
+                        go.active = true;
+                        if (IsInVisibleRange(go.position, Pos, Width, Height))
+                        {
+                            visibleObjects.Add(go);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (GameObject go in activeObjects)
+                {
+                    if (IsInVisibleRange(go.position, Pos, Width, Height))
+                    {
+                        visibleObjects.Add(go);
+                    }
                 }
             }
         }
 
-        private void RebuildVisibleObjects(Position Pos, int Width, int Height)
+        private bool IsInActiveRange(Position ObjectPos, Position Pos)
         {
-            RebuildActiveObjects(Pos);
-            visibleObjects.Clear();
-            foreach (GameObject go in activeObjects)
-            {
-                if (go.position.x < Pos.x + Width && go.position.x > Pos.x - Width - 1 &&
-                    go.position.y < Pos.y + Height && go.position.y > Pos.y - Height - 1)
-                    visibleObjects.Add(go);
-            }
+            if (Position.Distance(ObjectPos, Pos) < maxActiveDistance)
+                return true;
+            else
+                return false;
         }
 
-        private Sign GetCharAtPoint(Position Pos)
+        private bool IsInVisibleRange(Position ObjectPos, Position Pos, int Width, int Height)
+        {
+
+            if (ObjectPos.x < Pos.x + Width  && ObjectPos.x > Pos.x - Width - 1 &&
+                ObjectPos.y < Pos.y + Height && ObjectPos.y > Pos.y - Height - 1)
+                return true;
+            else
+                return false;
+        }
+
+        private Sign GetCharAtVisiblePoint(Position Pos)
         {
             Sign ret;
             if (IsPointOnGrid(Pos))
