@@ -42,7 +42,7 @@ namespace Overloadingtut
         {
             foreach(GameObject go in activeObjects)
             {
-                if (go.position == Pos)
+                if (go.Position == Pos)
                 {
                     IUsable ius = go as IUsable;
                     if (ius != null)
@@ -62,7 +62,7 @@ namespace Overloadingtut
                 {
                     foreach(GameObject go in (AllObjects ? gameObjects : activeObjects))
                     {
-                        if (go.position == Pos && go.enterable == false)
+                        if (go.Position == Pos && go.enterable == false)
                             return false;
                     }
                     return true;
@@ -91,22 +91,61 @@ namespace Overloadingtut
 
         public void ClearActiveObjects()
         {
+            foreach (GameObject g in activeObjects)
+                g.Active = false;
             activeObjects.Clear();
         }
 
+        private Position lastCheckPosition = new Position(0, 0);
+
+        //This is used when you move stuff other than the player object around.
+        public bool IsInRangeOfLastActiveCheck(GameObject gameObject)
+        {
+            if (activeObjects.Count == 0)
+                return false;
+            if (IsInActiveRange(gameObject.Position, lastCheckPosition))
+            {
+                if (!activeObjects.Contains(gameObject))
+                {
+                    activeObjects.Add(gameObject);
+                }
+                return true;
+            }
+            else
+            {
+                if (activeObjects.Contains(gameObject))
+                {
+                    activeObjects.Remove(gameObject);
+                }
+                return false;
+            }
+        }
+
+        //Keeps track of where in the list of gameobjects we currently are while rebuilding
         int CurrentBatchRebuild = 0;
+
+        //How many gameobjects to process each pass
         int BatchSize = 400000;
+
         List<GameObject> BatchObjects = new List<GameObject>();
         bool BatchComplete = false;
         private void RebuildObjects(Position Pos, int Width, int Height)
         {
+            //Ceiling all the ranges for the sake of consistency
             Width = (int)Math.Ceiling(Width / 2.0);
             Height = (int)Math.Ceiling(Height / 2.0);
+            lastCheckPosition = Pos;
             visibleObjects.Clear();
+
+            //This rebuilds the entire active objects list in one pass.
+            //If there is only 1 active object and this is being called (this happens when you move the player to a grid, as all active objects
+            //get deactivated when you move off a grid) then rebuild the entire thing immediately.
+            //Alternatively if the player has moved too far from their previous position AND the batch updating hasn't finished yet, do it all
+            //in one go instead. Lags a bit more but avoids a pop-in effect of gameobjects being reactivated on screen.
             if (activeObjects.Count <= 1 || Position.Distance(Pos, lastObjectCheckPos) > fullRecheckActiveObjectsdistance)
             {
                 foreach (GameObject go in activeObjects)
-                    go.active = false;
+                    go.Active = false;
                 activeObjects.Clear();
                 lastObjectCheckPos = Pos;
                 BatchObjects.Clear();
@@ -114,11 +153,11 @@ namespace Overloadingtut
                 BatchComplete = false;
                 foreach (GameObject go in gameObjects)
                 {
-                    if (IsInActiveRange(go.position, Pos))
+                    if (IsInActiveRange(go.Position, Pos))
                     {
                         activeObjects.Add(go);
-                        go.active = true;
-                        if (IsInVisibleRange(go.position, Pos, Width, Height))
+                        go.Active = true;
+                        if (IsInVisibleRange(go.Position, Pos, Width, Height))
                         {
                             visibleObjects.Add(go);
                         }
@@ -136,7 +175,7 @@ namespace Overloadingtut
                     }
                     if (gameObjects[i+CurrentBatchRebuild] != null)
                     {
-                        if (IsInActiveRange(gameObjects[i+CurrentBatchRebuild].position, Pos))
+                        if (IsInActiveRange(gameObjects[i+CurrentBatchRebuild].Position, Pos))
                         {
                             BatchObjects.Add(gameObjects[i+CurrentBatchRebuild]);
                         }
@@ -157,14 +196,14 @@ namespace Overloadingtut
                     BatchComplete = false;
                 }
                 foreach (GameObject go in activeObjects)
-                    if (IsInVisibleRange(go.position, Pos, Width, Height))
+                    if (IsInVisibleRange(go.Position, Pos, Width, Height))
                         visibleObjects.Add(go);
             }
             else
             {
                 foreach (GameObject go in activeObjects)
                 {
-                    if (IsInVisibleRange(go.position, Pos, Width, Height))
+                    if (IsInVisibleRange(go.Position, Pos, Width, Height))
                     {
                         visibleObjects.Add(go);
                     }
@@ -193,34 +232,28 @@ namespace Overloadingtut
         private Sign GetCharAtVisiblePoint(Position Pos)
         {
             Sign ret;
-            if (IsPointOnGrid(Pos))
+            IEnumerable<GameObject> objectlist = 
+                from o in visibleObjects
+                where o.Position == Pos
+                select o;
+            if (objectlist.Any())
             {
-                IEnumerable<GameObject> objectlist = 
-                    from o in visibleObjects
-                    where o.position == Pos
+                IEnumerable<GameObject> sortvisible =
+                    from o in objectlist
+                    where o.enterable == false
                     select o;
-                if (objectlist.Any())
+                if (sortvisible.Any())
                 {
-                    IEnumerable<GameObject> sortvisible =
-                        from o in objectlist
-                        where o.enterable == false
-                        select o;
-                    if (sortvisible.Any())
-                    {
-                        ret.sign = sortvisible.First().sign.sign;
-                        ret.color = sortvisible.First().sign.color;
-                    }
-                    else
-                    {
-                        ret.sign = objectlist.First().sign.sign;
-                        ret.color = objectlist.First().sign.color;
-                    }
+                    ret = sortvisible.First().sign;
                 }
                 else
                 {
-                    ret.sign = ground[Pos.x, Pos.y].sign.sign;
-                    ret.color = ground[Pos.x, Pos.y].sign.color;
+                    ret = objectlist.First().sign;
                 }
+            }
+            else if (IsPointOnGrid(Pos))
+            {
+                ret = ground[Pos.x, Pos.y].sign;
             }
             else
             {

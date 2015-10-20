@@ -41,10 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BeamObject.cs" />
     <Compile Include="GameObject.cs" />
     <Compile Include="Grid.cs" />
     <Compile Include="Grunt.cs" />
     <Compile Include="IUsable.cs" />
+    <Compile Include="MultiDimensionalBeam.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

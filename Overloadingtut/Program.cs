@@ -14,7 +14,7 @@ namespace Overloadingtut
 
         private static int _gridWidth = 9000;
         private static int _gridHeight = 9000;
-        private static int _numEnemies = 15000000;
+        private static int _numEnemies = 150000;
         private static int _displayWidth = 19;
         private static int _displayHeight = 19;
 
@@ -108,19 +108,20 @@ namespace Overloadingtut
             string down = "S";
             Grid grid = null;
             Grid grid2 = null;
+            Grid grid3 = null;
             //There is no size limit so we need to catch out of memory exceptions.
             try
             {
                 //Create game world.
                 grid = new Grid(_gridWidth, _gridHeight);
 
-                grid2 = new Grid(20, 20);
-                grid2.worldPosition = new Position(-5, -5);
+                grid2 = new Grid(200, 200);
+                grid2.worldPosition = new Position(-100, -100);
                 Portal p1 = GameObject.Instantiate<Portal>(new Position(25, 25), grid);
                 Portal p2 = GameObject.Instantiate<Portal>(new Position(1, 1), grid2);
                 p1.linkedObject = p2;
                 p2.linkedObject = p1;
-                Grid grid3 = new Grid(50, 50);
+                grid3 = new Grid(50, 50);
                 grid3.worldPosition = new Position(-2000, -2000);
                 Portal p3 = GameObject.Instantiate<Portal>(new Position(15, 15), grid);
                 Portal p4 = GameObject.Instantiate<Portal>(new Position(1, 1), grid3);
@@ -163,6 +164,10 @@ namespace Overloadingtut
 
             bool drawgriddebug = false;
 
+            List<MultiDimensionalBeam> MDBList = new List<MultiDimensionalBeam>();
+            MDBList.Add(new MultiDimensionalBeam(new List<Grid> { grid, grid2, grid3 }, new Position(40, 40), 70, 10));
+            MDBList.Add(new MultiDimensionalBeam(new List<Grid> { grid, grid2, grid3 }, new Position(0, -5), 70, 10));
+            MDBList.Add(new MultiDimensionalBeam(new List<Grid> { grid, grid2, grid3 }, new Position(-10, -30), 70, 10));
             
             while (Running)
             {
@@ -191,16 +196,15 @@ namespace Overloadingtut
 
                 //More debug
                 Console.SetCursorPosition(_displayWidth, 0);
-                Console.Write("X: " + g.position.x.ToString("D3"));
+                Console.Write("X: " + g.Position.x.ToString("D3"));
                 Console.SetCursorPosition(_displayWidth, 1);
-                Console.Write("Y: " + g.position.y.ToString("D3"));
-                int worldx = g.position.x + g.attachedGrid.worldPosition.x;
-                int worldy = g.position.y + g.attachedGrid.worldPosition.y;
+                Console.Write("Y: " + g.Position.y.ToString("D3"));
+                int worldx = g.Position.x + g.attachedGrid.worldPosition.x;
+                int worldy = g.Position.y + g.attachedGrid.worldPosition.y;
                 Console.SetCursorPosition(_displayWidth, 2);
                 Console.Write("World X: " + (worldx < 0 ? "-" : " ") + Math.Abs(worldx).ToString("D4"));
                 Console.SetCursorPosition(_displayWidth, 3);
                 Console.Write("World Y: " + (worldy < 0 ? "-" : " ") + Math.Abs(worldy).ToString("D4"));
-
 
                 string inputraw;
                 //Only read input if there is input.
@@ -251,7 +255,7 @@ namespace Overloadingtut
                     //Use
                     else if (inputraw == "U")
                     {
-                        IUsable ius = g.attachedGrid.GetUsableOnPos(g.position);
+                        IUsable ius = g.attachedGrid.GetUsableOnPos(g.Position);
                         if(ius != null)
                         {
                             ius.Use(g);
@@ -262,10 +266,15 @@ namespace Overloadingtut
                         Console.ReadKey(true);
                 }
 
-                Console.SetCursorPosition(0, 0);
-                if (!drawgriddebug) g.attachedGrid.DisplayPart(g.position, _displayWidth, _displayHeight);
-                else grid.DisplayPart(g.position + g.attachedGrid.worldPosition, _displayHeight, _displayWidth);
 
+
+                //Beam stuff
+                foreach (MultiDimensionalBeam m in MDBList)
+                    m.UpdateBeams();
+
+                Console.SetCursorPosition(0, 0);
+                if (!drawgriddebug) g.attachedGrid.DisplayPart(g.Position, _displayWidth, _displayHeight);
+                else grid.DisplayPart(g.Position + g.attachedGrid.worldPosition, _displayWidth, _displayHeight);
 
                 framerate += 1;
                 Console.ForegroundColor = ConsoleColor.DarkRed;

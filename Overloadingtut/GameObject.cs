@@ -8,17 +8,27 @@ namespace Overloadingtut
 {
     class GameObject
     {
-        public Position position;
+        protected Position position;
+        public Position Position
+        {
+            get { return position; }
+            set { position = value; }
+        }
         public Sign sign;
         public Grid attachedGrid;
-        public bool active = false;
+        protected bool active = false;
+        public bool Active
+        {
+            get { return active; }
+            set { active = value; }
+        }
         public bool enterable = false;
         public bool player = false;
 
         public static T Instantiate<T>(Position position, Grid AttachToGrid) where T : GameObject
         {
             T temp = (T)Activator.CreateInstance(typeof(T));
-            temp.position = new Position(position.x, position.y);
+            temp.Position = new Position(position.x, position.y);
             temp.CreateOnGrid(AttachToGrid);
             return temp;
         }
@@ -35,10 +45,10 @@ namespace Overloadingtut
         {
             if (World)
             {
-                if (!newGrid.PosIsAvailable((position + attachedGrid.worldPosition) - newGrid.worldPosition, true))
+                if (!newGrid.PosIsAvailable((Position + attachedGrid.worldPosition) - newGrid.worldPosition, true))
                     return false;
 
-                position = (position - newGrid.worldPosition) + attachedGrid.worldPosition;
+                Position = (Position - newGrid.worldPosition) + attachedGrid.worldPosition;
             }
             if (attachedGrid != null)
             {
@@ -67,9 +77,9 @@ namespace Overloadingtut
 
         public virtual void Move(int X, int Y)
         {
-            if (attachedGrid.PosIsAvailable(new Position(position.x + X, position.y + Y), false))
+            if (attachedGrid.PosIsAvailable(new Position(Position.x + X, Position.y + Y), false))
             {
-                position = new Position(position.x + X, position.y + Y);
+                Position = new Position(Position.x + X, Position.y + Y);
             }
         }
     }
